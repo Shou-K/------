@@ -61,7 +61,10 @@ def apply_move(board, row, col, player):
 
 # 評価関数（基本的な評価）
 def evaluate(board, player):
-    return np.sum(board) * player
+    piece_score = np.sum(board) * player  # 石の数
+    mobility_score = (len(get_valid_moves(board, player)) - len(get_valid_moves(board, -player))) * 10  # 手の選択肢の差
+    return piece_score + mobility_score
+
 
 # ミニマックス法（α-β枝刈りあり）
 def minimax(board, depth, player, alpha, beta):
