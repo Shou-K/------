@@ -13,6 +13,17 @@ DIRECTIONS = [
     (1, -1), (1, 0), (1, 1)
 ]
 
+WEIGHT_MATRIX = np.array([
+    [100, -20, 10,  5,  5, 10, -20, 100],
+    [-20, -50, -2, -2, -2, -2, -50, -20],
+    [10,  -2,  1,  1,  1,  1,  -2,  10],
+    [5,   -2,  1,  0,  0,  1,  -2,  5],
+    [5,   -2,  1,  0,  0,  1,  -2,  5],
+    [10,  -2,  1,  1,  1,  1,  -2,  10],
+    [-20, -50, -2, -2, -2, -2, -50, -20],
+    [100, -20, 10,  5,  5, 10, -20, 100]
+])
+
 # ボードの初期化
 def initial_board():
     board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype=int)
@@ -20,6 +31,10 @@ def initial_board():
     board[mid - 1][mid - 1] = board[mid][mid] = 1  # 白
     board[mid - 1][mid] = board[mid][mid - 1] = -1  # 黒
     return board
+
+def evaluate_board(board, player):
+    return np.sum(board * WEIGHT_MATRIX) * player
+
 
 # 有効な手を取得
 def get_valid_moves(board, player):
@@ -60,7 +75,7 @@ def monte_carlo_ai(board, player, simulations=100):
     valid_moves = get_valid_moves(board, player)
     if not valid_moves:
         return None
-    
+
     move_scores = {move: 0 for move in valid_moves}
     for move in valid_moves:
         for _ in range(simulations):
@@ -70,16 +85,16 @@ def monte_carlo_ai(board, player, simulations=100):
                 random_move = random.choice(get_valid_moves(sim_board, current_player))
                 sim_board = apply_move(sim_board, random_move[0], random_move[1], current_player)
                 current_player *= -1
-            move_scores[move] += np.sum(sim_board) * player
-    
+            move_scores[move] += evaluate_board(sim_board, player)  # 変更点
+
     return max(move_scores, key=move_scores.get)
 
 # ミニマックス法のAI
 def minimax(board, depth, player, alpha, beta):
     valid_moves = get_valid_moves(board, player)
     if depth == 0 or not valid_moves:
-        return np.sum(board) * player, None
-    
+        return evaluate_board(board, player), None  # 変更点
+
     best_move = None
     if player == 1:
         max_eval = float('-inf')
